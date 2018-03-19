@@ -24,7 +24,7 @@ public class AnalyzePriceHistory {
 	private PriceDataDAO priceDataDAO;
 
 	public List<PriceData> getIntialPriceDataForTicker(String ticker) {
-		return priceDataDAO.findTop500ByTicker(ticker);
+		return priceDataDAO.findTopByTicker(ticker, 500);
 	}
 
 	/**

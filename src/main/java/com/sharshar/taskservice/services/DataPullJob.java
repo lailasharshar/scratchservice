@@ -36,10 +36,10 @@ public class DataPullJob {
 		}
 		if (doJob) {
 			try {
-				System.out.println("Updating data: " + sdf.format(new Date()));
+				//System.out.println("Updating data: " + sdf.format(new Date()));
 				priceTracker.processUpdate();
 			} catch (Exception ex) {
-				// We har having a problem skip tasks for a while
+				// We are having a problem skip tasks for a while
 				skipAFew = true;
 				ex.printStackTrace();
 			}

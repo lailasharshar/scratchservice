@@ -7,6 +7,7 @@ import com.sharshar.taskservice.repository.PriceDataDAO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -33,6 +34,12 @@ public class PriceTracker {
 	@Resource
 	private PriceDataDAO priceDataDAO;
 
+	@Autowired
+	NotificationService notificationService;
+
+	@Value( "${url}" )
+	private String url;
+
 	// A cached version of the latest tickers to compare against
 	private List<String> existingTickers;
 
@@ -48,7 +55,7 @@ public class PriceTracker {
 		// it won't be stale
 		boolean staleData = isStale(priceDataDAO.getLatestUpdate());
 		if (staleData) {
-			System.out.println("Stale data - reloading");
+			System.out.println("Stale data - reloading - Data is stale or older than " + (MAX_DOWN_TIME / 1000) + " seconds.");
 			logger.info("Data is stale or older than "
 					+ (MAX_DOWN_TIME / 1000) + " seconds.");
 		}
@@ -59,7 +66,7 @@ public class PriceTracker {
 		// Determine which currencies are new. This also adds
 		// tickers to the cache, even if we don't act on it.
 		List<String> newTickers = getNewTickers(priceData);
-		if (newTickers != null && newTickers.size() > 0) {
+		if (newTickers != null && newTickers.size() > 0 && newTickers.size() < 200) {
 			String newTickerString = String.join(", ", newTickers);
 			System.out.println("New Tickers: " + newTickerString);
 			logger.info("New Tickers: " + newTickerString);
@@ -69,9 +76,14 @@ public class PriceTracker {
 		savePriceData(priceData);
 
 		// If we are not stale, check to see if there is anything new
-		if (!staleData && newTickers != null && newTickers.size() > 0) {
+		if (!staleData && newTickers != null && newTickers.size() > 0 && newTickers.size() < 200) {
 			// Right now, just notify me that there is a new one
 			// TODO - Trade coins!
+			for (String newTicker : newTickers) {
+				notificationService.notifyMe("NEW TICKER: " + newTicker,
+						"New Ticker: " + newTicker + "\n\n + url + " +
+								"/data/history/" + newTicker + "/firstText");
+			}
 			System.out.println("We should act!");
 		}
 	}

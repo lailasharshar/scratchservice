@@ -176,7 +176,7 @@ public class InfoApi {
 
 	@RequestMapping("/launchData/{ticker}")
 	public List<PriceData> getDataFromLaunch(@PathVariable String ticker) {
-		return priceDataDAO.findTop500ByTicker(ticker);
+		return priceDataDAO.findTopByTicker(ticker, 500);
 	}
 
 	/**
