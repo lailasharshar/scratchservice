@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,14 +22,11 @@ public class ExchangeCache {
 	@Value("${cacheSize}")
 	private int cacheSize;
 
-	private short exchange;
-
 	private List<String> tickers;
 
 	private Map<String, List<PriceData>> priceCache;
 
-	public ExchangeCache(short exchange) {
-		this.exchange = exchange;
+	public ExchangeCache() {
 		if (cacheSize == 0) {
 			cacheSize = 100;
 		}
@@ -46,7 +42,7 @@ public class ExchangeCache {
 		}
 	}
 
-	public void addPricedata(List<PriceData> priceData) {
+	void addPricedata(List<PriceData> priceData) {
 		if (priceData == null) {
 			return;
 		}
@@ -71,21 +67,32 @@ public class ExchangeCache {
 				}
 				data.add(p);
 			}
+			//if (ticker.equalsIgnoreCase("WANBNB")) {
+			//	System.out.println(getPriceCache(ticker));
+			//}
 		}
 	}
 
-	public Date getLatestUpdate() {
+	private String getPriceCache(String ticker) {
+		if (priceCache == null || priceCache.get(ticker) == null) {
+			return "";
+		}
+		List<PriceData> data = priceCache.get(ticker);
+		StringBuilder result = new StringBuilder();
+		result.append("Ticker: ").append(ticker).append(" (").append(data.size()).append(")\n");
+		data.forEach(p -> result.append("    Date: ").append(p.getUpdateTime()).append(" Price: ").append(p.getPrice()).append("\n"));
+		return result.toString();
+	}
+
+	Date getLatestUpdate() {
 		Date longTimeAgo = new Date(0);
 		if (priceCache == null || priceCache.size() == 0) {
 			return longTimeAgo;
 		}
 		// Find first ticker with data
 		Optional<String> firstTicker = priceCache.keySet().stream().findFirst();
-		if (!firstTicker.isPresent()) {
-			return longTimeAgo;
-		}
-		return priceCache.get(firstTicker.get()).stream()
-				.map(PriceData::getUpdateTime).max(Date::compareTo).get();
+		return firstTicker.map(s -> priceCache.get(s).stream()
+				.map(PriceData::getUpdateTime).max(Date::compareTo).get()).orElse(longTimeAgo);
 	}
 
 	public List<PriceData> getPriceData(String ticker) {
@@ -108,7 +115,7 @@ public class ExchangeCache {
 	 *
 	 * @param ticker - the ticker to add
 	 */
-	public void addTicker(String ticker) {
+	private void addTicker(String ticker) {
 		// Use this way to access it so it creates it if it doesn't already exist
 		List<String> tList = getTickers();
 		if (tList != null && !tList.contains(ticker)) {
@@ -116,7 +123,7 @@ public class ExchangeCache {
 		}
 	}
 
-	public void addAllTickers(List<String> tickers) {
+	void addAllTickers(List<String> tickers) {
 		// Loads them if they are not there
 		if (tickers != null) {
 			for (String t : tickers) {
@@ -137,15 +144,11 @@ public class ExchangeCache {
 		return tickers;
 	}
 
-	public boolean tickerExists(String ticker) {
-		if (ticker == null) {
-			return false;
-		}
-		List<String> tickers = getTickers();
-		return tickers.contains(ticker);
+	private boolean tickerExists(String ticker) {
+		return ticker != null && getTickers().contains(ticker);
 	}
 
-	public void clear() {
+	void clear() {
 		if (tickers != null) {
 			tickers.clear();
 		}

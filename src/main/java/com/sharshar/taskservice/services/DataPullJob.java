@@ -29,7 +29,7 @@ public class DataPullJob {
 	private GlobalRepositories repositories;
 
 	@Autowired
-	BinancePriceTracker binancePriceTracker;
+	private BinancePriceTracker binancePriceTracker;
 
 	/**
 	 * A scheduled job to update any price trackers we would like to use. As new ones are added,
@@ -39,14 +39,14 @@ public class DataPullJob {
 	 */
 	@Scheduled(fixedRate = 10000)
 	public void doTracking() {
-		if (this.repositories == null || this.repositories.getTrackerList() == null) {
+		if (this.repositories.getTrackerList() == null) {
 			return;
 		}
 		// If this is the first time, load the trackers
-		if (this.repositories.getTrackerList().size() == 0) {
+		if (this.repositories.getTrackerList().isEmpty()) {
 			// Binance
 			this.repositories.addTracker(binancePriceTracker, ScratchConstants.BINANCE, 3,
-					applicationContext.getBean(ExchangeCache.class, ScratchConstants.BINANCE));
+					applicationContext.getBean(ExchangeCache.class));
 		}
 		for (RepositoryDescriptor descriptor : this.repositories.getTrackerList()) {
 			logger.info("Updating " +

@@ -1,17 +1,19 @@
 package com.sharshar.taskservice.services;
 
+import com.sharshar.taskservice.utils.ScratchException;
 import org.springframework.data.util.Pair;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Used to analyze price data
  * Created by lsharshar on 1/20/2018.
  */
 public class PriceStepper {
-	List<Pair<Double, Double>> pairs;
-	double purchasePrice = 0.0;
-	double rollingMax = 0.0;
+	private List<Pair<Double, Double>> pairs;
+	private double purchasePrice = 0.0;
+	private double rollingMax = 0.0;
 
 	public PriceStepper(List<Pair<Double, Double>> pairs) {
 		if (pairs == null) {
@@ -36,21 +38,20 @@ public class PriceStepper {
 	 *
 	 * @param currentPrice - the current price to compare against the max
 	 * @return true if we've dropped below the percentage threshold for the relevant step
-	 * @throws Exception if there is some important data not defined (like the steps or purchase price)
+	 * @throws ScratchException if there is some important data not defined (like the steps or purchase price)
 	 */
-	boolean shouldSell(double currentPrice) throws Exception {
+	boolean shouldSell(double currentPrice) throws ScratchException {
 		// Throw exception if the purchase was never defined
 		if (purchasePrice == 0) {
-			throw new Exception("Purchase price is not specified");
+			throw new ScratchException("Purchase price is not specified");
 		}
 
 		// If we don't have any steps defined, throw exception
 		if (pairs == null) {
-			throw new Exception("No price steps specified");
+			throw new ScratchException("No price steps specified");
 		}
 
-		// If the current price is over the rolling max, set it to the
-		// current price and return false;
+		// If the current price is over the rolling max, set it to the current price and return as false;
 		if (currentPrice > rollingMax) {
 			rollingMax = currentPrice;
 			return false;
@@ -85,7 +86,7 @@ public class PriceStepper {
 	 *                 If the current price is 9, the multiple is 0.9.
 	 * @return - the appropiate percentage drop to look for
 	 */
-	public Double getAppropriatePercent(double multiple) {
+	private Double getAppropriatePercent(double multiple) {
 		Pair<Double, Double> previousPair = pairs.get(0);
 		for (Pair<Double, Double> pair : pairs) {
 			// Iterate until we find the one with a value larger

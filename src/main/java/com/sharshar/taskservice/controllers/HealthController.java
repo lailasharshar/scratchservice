@@ -1,8 +1,5 @@
 package com.sharshar.taskservice.controllers;
 
-import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.repository.PriceDataES;
-import com.sharshar.taskservice.utils.ScratchConstants;
 import com.sharshar.taskservice.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,16 +15,6 @@ public class HealthController {
 
 	@Autowired
 	private NotificationService notificationService;
-
-	@Autowired
-	private PriceDataES priceDataES;
-
-	@RequestMapping("/es")
-	public List<PriceData> getElasticSearchPriceData() {
-		return priceDataES.findByTicker(
-				"OTNBNB",
-				ScratchConstants.BINANCE);
-	}
 
 	@RequestMapping("/email")
 	public String testEmail() {

@@ -16,26 +16,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * Perform tracking tasks for new tickers on an exchange
+ *
  * Created by lsharshar on 3/19/2018.
  */
 @Service
 @Scope("prototype")
 public class NewTickerAlgorithm {
 
-	Logger logger = LogManager.getLogger();
+	private Logger logger = LogManager.getLogger();
 
 	@Autowired
-	NotificationService notificationService;
+	private NotificationService notificationService;
 
 	@Autowired
-	GlobalRepositories globalRepositories;
+	private GlobalRepositories globalRepositories;
 
 	@Value( "${url}" )
 	private String url;
 
 	private List<String> newTickers;
 
-	short exchange;
+	private short exchange;
 
 	public NewTickerAlgorithm(short exchange, List<String> newTickers) {
 		this.newTickers = newTickers;
@@ -95,7 +97,7 @@ public class NewTickerAlgorithm {
 		return sb.toString();
 	}
 
-	public List<PriceData> getPrices(String ticker)  {
+	private List<PriceData> getPrices(String ticker)  {
 		List<PriceData> pd = new ArrayList<>();
 		List<RepositoryDescriptor> trackers = globalRepositories.getTrackerList();
 		for (RepositoryDescriptor d : trackers) {
@@ -108,7 +110,7 @@ public class NewTickerAlgorithm {
 		return pd;
 	}
 
-	public void notifyMe(List<PriceData> allPrices, String ticker) {
+	private void notifyMe(List<PriceData> allPrices, String ticker) {
 		try {
 			String msg = getNotificationString(allPrices, ticker);
 			notificationService.notifyMe("NEW " + ScratchConstants.EXCHANGES[exchange] + " TICKER: "

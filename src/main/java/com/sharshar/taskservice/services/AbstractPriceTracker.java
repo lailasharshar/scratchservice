@@ -2,7 +2,6 @@ package com.sharshar.taskservice.services;
 
 import com.sharshar.taskservice.algorithms.NewTickerAlgorithm;
 import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.repository.PriceDataES;
 import com.sharshar.taskservice.utils.ScratchConstants;
 import com.sharshar.taskservice.utils.ScratchException;
 import org.apache.logging.log4j.LogManager;
@@ -30,12 +29,6 @@ public abstract class AbstractPriceTracker implements PriceTracker {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-	@Autowired
-	NotificationService notificationService;
-
-	@Autowired
-	PriceDataES priceDataES;
-
 	@Value( "${url}" )
 	private String url;
 
@@ -52,7 +45,7 @@ public abstract class AbstractPriceTracker implements PriceTracker {
 	 * @return true if it's stale, false if it's new since the last time
 	 * we've checked and that time difference was less than the MAX_DOWN_TIME
 	 */
-	protected boolean isStale(Date lastUpdate) {
+	private boolean isStale(Date lastUpdate) {
 		if (lastUpdate == null) {
 			return true;
 		}
@@ -113,8 +106,6 @@ public abstract class AbstractPriceTracker implements PriceTracker {
 			return;
 		}
 		cache.addPricedata(samples);
-		samples.stream().forEach(pd -> priceDataES.save(pd));
-		//asynchronousDbService.saveData(samples);
 	}
 
 	/**

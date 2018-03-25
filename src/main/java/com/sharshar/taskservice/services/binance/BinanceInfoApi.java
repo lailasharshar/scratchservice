@@ -5,9 +5,9 @@ import com.binance.api.client.domain.market.Candlestick;
 import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.domain.market.TickerStatistics;
-import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.repository.PriceDataES;
 import com.sharshar.taskservice.utils.ScratchConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,12 +24,10 @@ import java.util.*;
  */
 @RestController
 public class BinanceInfoApi {
+	private Logger logger = LogManager.getLogger();
 
 	@Autowired
 	private BinanceApiRestClient binanceApiRestClient;
-
-	@Autowired
-	PriceDataES priceDataES;
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 	private static final CandlestickInterval DEFAILT_CANDLESTICK = CandlestickInterval.DAILY;
@@ -96,20 +94,18 @@ public class BinanceInfoApi {
 	 * @return the list of all currencies and their prices
 	 */
 	@RequestMapping("/" + ScratchConstants.BINANCE + "/allPrices")
-	public List<TickerPrice> getAllBooks() {
-		List<TickerPrice> prices = binanceApiRestClient.getAllPrices();
-		return prices;
+	public List<TickerPrice> getAllPrices() {
+		return binanceApiRestClient.getAllPrices();
 	}
 
 	/**
 	 * The last day's prices for a currency
-	 * @param ticker
-	 * @return
+	 * @param ticker - the name of the ticker
+	 * @return ticker statistics
 	 */
 	@RequestMapping("/" + ScratchConstants.BINANCE + "/history24/{ticker}")
 	public TickerStatistics getHistory24(@PathVariable String ticker) {
-		TickerStatistics stats = binanceApiRestClient.get24HrPriceStatistics(ticker);
-		return stats;
+		return binanceApiRestClient.get24HrPriceStatistics(ticker);
 	}
 
 
@@ -145,23 +141,18 @@ public class BinanceInfoApi {
 				@RequestParam String startDate,
 				@RequestParam String endDate,
 				@RequestParam(defaultValue = "1d") String interval) {
-		Date startDateVal = null;
-		Date endDateVal = null;
+		Date startDateVal;
+		Date endDateVal;
 		try {
 			startDateVal = sdf.parse(startDate + ":00");
 			endDateVal = sdf.parse(endDate + ":00");
 		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
+			logger.error("Unable to get ticker " + ticker + " history", ex);
+			return new ArrayList<>();
 		}
 		return binanceApiRestClient.getCandlestickBars(ticker,
 				getInterval(interval), 500,
 				startDateVal.getTime(), endDateVal.getTime());
-	}
-
-	@RequestMapping("/" + ScratchConstants.BINANCE + "/launchData/{ticker}")
-	public List<PriceData> getDataFromLaunch(@PathVariable String ticker, @PathVariable short exchange) {
-		return priceDataES.findByTicker(ticker, ScratchConstants.BINANCE);
 	}
 
 	/**
@@ -170,7 +161,7 @@ public class BinanceInfoApi {
 	 * match or it is not valid, the default interval will be used
 	 *
 	 * @param i - the string defining the interval.
-	 * @return
+	 * @return a candlestick interval
 	 */
 	private static CandlestickInterval getInterval(String i) {
 		if (i == null) {

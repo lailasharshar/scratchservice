@@ -22,7 +22,6 @@ public class BinanceClient {
 	public BinanceApiRestClient binanceApiRestClient() {
 		BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(
 				binanceApiKey, binanceSecretKey);
-		BinanceApiRestClient client = factory.newRestClient();
-		return client;
+		return factory.newRestClient();
 	}
 }
