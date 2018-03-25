@@ -65,6 +65,15 @@
 			<artifactId>spring-data-commons</artifactId>
 			<version>2.0.3.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
 	</dependencies>
 
     <repositories>
@@ -72,6 +81,11 @@
 			<id>basic</id>
 			<name>The default maven repository, should have everything</name>
 			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>spring</id>
+			<name>Spring stuff</name>
+			<url>https://repo.spring.io/libs-milestone/</url>
 		</repository>
 	</repositories>
 	<build>

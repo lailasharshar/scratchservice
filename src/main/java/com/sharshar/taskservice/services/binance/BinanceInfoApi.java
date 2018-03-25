@@ -1,4 +1,4 @@
-package com.sharshar.taskservice.controllers;
+package com.sharshar.taskservice.services.binance;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.market.Candlestick;
@@ -6,14 +6,14 @@ import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.domain.market.TickerStatistics;
 import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.repository.PriceDataDAO;
+import com.sharshar.taskservice.repository.PriceDataES;
+import com.sharshar.taskservice.utils.ScratchConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -23,13 +23,13 @@ import java.util.*;
  * Created by lsharshar on 1/14/2018.
  */
 @RestController
-public class InfoApi {
+public class BinanceInfoApi {
 
 	@Autowired
 	private BinanceApiRestClient binanceApiRestClient;
 
-	@Resource
-	private PriceDataDAO priceDataDAO;
+	@Autowired
+	PriceDataES priceDataES;
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 	private static final CandlestickInterval DEFAILT_CANDLESTICK = CandlestickInterval.DAILY;
@@ -59,7 +59,7 @@ public class InfoApi {
 	 *
 	 * @return true if ping worked
 	 */
-	@RequestMapping("/ping")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/ping")
 	public boolean ping() {
 		binanceApiRestClient.ping();
 		return true;
@@ -70,25 +70,10 @@ public class InfoApi {
 	 *
 	 * @return the time
 	 */
-	@RequestMapping("/systemTime")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/")
 	public String getSystemTime() {
 		long serverTime = binanceApiRestClient.getServerTime();
 		Date d = new Date(serverTime);
-		return sdf.format(d);
-	}
-
-	/**
-	 * The last time we updated the data in the database - the last time a pull
-	 * was done. Used to determine how stale the data is
-	 *
-	 * @return the max date in the price data
-	 */
-	@RequestMapping("/lastRunTime")
-	public String lastUpdateTime() {
-		Date d = priceDataDAO.getLatestUpdate();
-		if (d == null) {
-			return "";
-		}
 		return sdf.format(d);
 	}
 
@@ -99,7 +84,7 @@ public class InfoApi {
 	 *               Ethereum and Bitcoin
 	 * @return the current price
 	 */
-	@RequestMapping("/price/{ticker}")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/price/{ticker}")
 	public String getPrice(@PathVariable String ticker) {
 		return binanceApiRestClient.get24HrPriceStatistics(ticker).getLastPrice();
 	}
@@ -110,7 +95,7 @@ public class InfoApi {
 	 *
 	 * @return the list of all currencies and their prices
 	 */
-	@RequestMapping("/allPrices")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/allPrices")
 	public List<TickerPrice> getAllBooks() {
 		List<TickerPrice> prices = binanceApiRestClient.getAllPrices();
 		return prices;
@@ -121,7 +106,7 @@ public class InfoApi {
 	 * @param ticker
 	 * @return
 	 */
-	@RequestMapping("/history24/{ticker}")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/history24/{ticker}")
 	public TickerStatistics getHistory24(@PathVariable String ticker) {
 		TickerStatistics stats = binanceApiRestClient.get24HrPriceStatistics(ticker);
 		return stats;
@@ -155,7 +140,7 @@ public class InfoApi {
 	 * @return The candlesticks (high, low range) for each interval between those two dates.
 	 * The maximum number of results will be 500 returned.
 	 */
-	@RequestMapping("/history/{ticker}")
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/history/{ticker}")
 	public List<Candlestick> getHistory(@PathVariable String ticker,
 				@RequestParam String startDate,
 				@RequestParam String endDate,
@@ -174,9 +159,9 @@ public class InfoApi {
 				startDateVal.getTime(), endDateVal.getTime());
 	}
 
-	@RequestMapping("/launchData/{ticker}")
-	public List<PriceData> getDataFromLaunch(@PathVariable String ticker) {
-		return priceDataDAO.findTopByTicker(ticker, 500);
+	@RequestMapping("/" + ScratchConstants.BINANCE + "/launchData/{ticker}")
+	public List<PriceData> getDataFromLaunch(@PathVariable String ticker, @PathVariable short exchange) {
+		return priceDataES.findByTicker(ticker, ScratchConstants.BINANCE);
 	}
 
 	/**

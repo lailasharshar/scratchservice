@@ -1,8 +1,8 @@
 package com.sharshar.taskservice.controllers;
 
 import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.controllers.utils.GenUtils;
-import com.sharshar.taskservice.repository.PriceDataDAO;
+import com.sharshar.taskservice.repository.PriceDataES;
+import com.sharshar.taskservice.utils.GenUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Used to return data that can be analyzed. This is data from the database
+ *
  * Created by lsharshar on 3/16/2018.
  */
 @RestController
@@ -24,7 +27,7 @@ public class DataAnalysis {
 		private double price;
 		private Date updateDate;
 
-		public PriceDataLight(String ticker, double price, Date updateDate) {
+		private PriceDataLight(String ticker, double price, Date updateDate) {
 			this.ticker = ticker;
 			this.price = price;
 			this.updateDate = updateDate;
@@ -45,51 +48,49 @@ public class DataAnalysis {
 	}
 
 	@Resource
-	private PriceDataDAO priceDataDAO;
+	private PriceDataES priceDataEs;
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm");
 	private SimpleDateFormat sdf2 = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
 
 	@GetMapping("/data/history/{ticker}/first")
-	public List<PriceDataLight> getPriceData(@PathVariable String ticker) {
-		List<PriceData> data = priceDataDAO.findTopByTicker(ticker, 100);
+	public List<PriceDataLight> getPriceData(@PathVariable String ticker, short exchange) {
+		List<PriceData> data = priceDataEs.findByTicker(ticker, exchange);
 		if (data != null) {
-			List<PriceDataLight> dataLight = data.stream()
-					.map(d -> new PriceDataLight(d.getTicker(), d.getPrice(), d.getUpdateTime()))
+			return data.stream().map(d -> new PriceDataLight(d.getTicker(), d.getPrice(), d.getUpdateTime()))
 					.collect(Collectors.toList());
-			return dataLight;
 		}
-		return null;
+		return new ArrayList<>();
 	}
 
-	@GetMapping("/data/history/{ticker}/firstText")
-	public String getPriceDataText(@PathVariable String ticker) {
-		List<PriceData> data = priceDataDAO.findTopByTicker(ticker, 100);
-		String result = ticker + "\n\n";
+	@GetMapping("/data/history/{ticker}/{exchange}/firstText")
+	public String getPriceDataText(@PathVariable String ticker, @PathVariable short exchange) {
+		List<PriceData> data = priceDataEs.findByTicker(ticker, exchange);
+		StringBuilder result = new StringBuilder();
+		result.append(ticker).append("\n\n");
 		if (data != null) {
 			for (PriceData pd : data) {
-				result += "   " + sdf2.format(pd.getUpdateTime()) + ": " + String.format("%2.10f", pd.getPrice()) + "\n";
+				result.append("   ").append(sdf2.format(pd.getUpdateTime()))
+						.append(": ").append(String.format("%2.10f", pd.getPrice())).append("\n");
 			}
-			return result;
+			return result.toString();
 		}
 		return null;
 	}
 
-	@GetMapping("/data/history/{ticker}")
+	@GetMapping("/data/history/{ticker}/{exchange}")
 	public List<PriceDataLight> getPriceData(@PathVariable String ticker, @RequestParam String startDate,
-										@RequestParam String endDate) {
+										@RequestParam String endDate, @PathVariable short exchange) {
 		Date startDateVal = GenUtils.parseDate(startDate, sdf);
 		Date endDateVal = GenUtils.parseDate(endDate, sdf);
 		if (startDateVal == null || endDateVal == null) {
-			return null;
+			return new ArrayList<>();
 		}
-		List<PriceData> data = priceDataDAO.getTickerDateRange(ticker, startDateVal, endDateVal);
+		List<PriceData> data = priceDataEs.findByTimeRange(ticker, startDateVal, endDateVal, exchange);
 		if (data != null) {
-			List<PriceDataLight> dataLight = data.stream()
-					.map(d -> new PriceDataLight(d.getTicker(), d.getPrice(), d.getUpdateTime()))
+			return data.stream().map(d -> new PriceDataLight(d.getTicker(), d.getPrice(), d.getUpdateTime()))
 					.collect(Collectors.toList());
-			return dataLight;
 		}
-		return null;
+		return new ArrayList<>();
 	}
 }

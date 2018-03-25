@@ -1,30 +1,37 @@
 package com.sharshar.taskservice.services;
 
 import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.repository.PriceDataDAO;
+import com.sharshar.taskservice.repository.PriceDataES;
+import com.sharshar.taskservice.utils.ScratchConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
+ * Class to analyze different approaches to holding/selling currencies
+ *
+ * It takes different
+ *
  * Created by lsharshar on 1/20/2018.
  */
 @Service
 public class AnalyzePriceHistory {
 	public class Analysis {
-		public double initialPrice;
-		public double sellPrice;
-		public double gain;
-		public String errorMessage;
+		String exchange;
+		double initialPrice;
+		double sellPrice;
+		double gain;
+		String errorMessage;
 	}
 
-	@Resource
-	private PriceDataDAO priceDataDAO;
+	@Autowired
+	PriceDataES priceDataES;
 
-	public List<PriceData> getIntialPriceDataForTicker(String ticker) {
-		return priceDataDAO.findTopByTicker(ticker, 500);
+	private List<PriceData> getIntialPriceDataForTicker(String ticker, short exchange, int num) {
+		return priceDataES.findByTicker(ticker, exchange);
 	}
 
 	/**
@@ -35,10 +42,10 @@ public class AnalyzePriceHistory {
 	 * @return the price the steps would have ended up advising to sell at
 	 * @throws Exception if there is a configuration or database problem
 	 */
-	public Analysis analyzeSellPrice(String ticker, List<Pair<Double, Double>> steps) throws Exception {
+	public Analysis analyzeSellPrice(String ticker, List<Pair<Double, Double>> steps, short exchange) throws Exception {
 		PriceStepper stepper = new PriceStepper(steps);
-		List<PriceData> dataList = getIntialPriceDataForTicker(ticker);
-		if (dataList == null || dataList.size() == 0) {
+		List<PriceData> dataList = getIntialPriceDataForTicker(ticker, exchange, 500);
+		if (dataList == null || dataList.isEmpty()) {
 			Analysis analysis = new Analysis();
 			analysis.initialPrice = 0;
 			analysis.sellPrice = 0;
@@ -55,6 +62,7 @@ public class AnalyzePriceHistory {
 				double price = data.getPrice();
 				if (stepper.shouldSell(price)) {
 					Analysis analysis = new Analysis();
+					analysis.exchange = ScratchConstants.EXCHANGES[exchange];
 					analysis.initialPrice = stepper.getPurchasePrice();
 					analysis.sellPrice = price;
 					analysis.gain = price/analysis.initialPrice;
@@ -64,6 +72,7 @@ public class AnalyzePriceHistory {
 			}
 		}
 		Analysis analysis = new Analysis();
+		analysis.exchange = ScratchConstants.EXCHANGES[exchange];
 		analysis.initialPrice = stepper.getPurchasePrice();
 		analysis.sellPrice = 0;
 		analysis.gain = 0.0;

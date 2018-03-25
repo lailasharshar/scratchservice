@@ -1,4 +1,4 @@
-package com.sharshar.taskservice.configuration;
+package com.sharshar.taskservice.services.binance;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;

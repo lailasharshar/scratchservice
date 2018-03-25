@@ -1,6 +1,6 @@
 package com.sharshar.taskservice.controllers;
 
-import com.sharshar.taskservice.repository.PriceDataDAO;
+import com.sharshar.taskservice.repository.PriceDataES;
 import com.sharshar.taskservice.services.AnalyzePriceHistory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -20,16 +20,16 @@ import java.util.List;
 @RestController
 public class PriceAnalysisController {
 	@Resource
-	private PriceDataDAO priceDataDAO;
+	private PriceDataES priceDataEs;
 
 	@Autowired
 	private AnalyzePriceHistory analyzePriceHistory;
 
 	@RequestMapping("/analysis/{ticker}")
-	public AnalyzePriceHistory.Analysis getAnalysis(@PathVariable String ticker, @RequestParam String steps) {
+	public AnalyzePriceHistory.Analysis getAnalysis(@PathVariable String ticker, @RequestParam String steps, @RequestParam short exchange) {
 		List<Pair<Double, Double>> pairs = parseSteps(Arrays.asList(steps.split(" ")));
 		try {
-			AnalyzePriceHistory.Analysis analysis = analyzePriceHistory.analyzeSellPrice(ticker, pairs);
+			AnalyzePriceHistory.Analysis analysis = analyzePriceHistory.analyzeSellPrice(ticker, pairs, exchange);
 			return analysis;
 		} catch (Exception ex) {
 

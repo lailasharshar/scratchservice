@@ -1,33 +1,43 @@
 package com.sharshar.taskservice.beans;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+
+import java.security.SecureRandom;
 import java.util.Date;
 
 /**
+ * Bean for price data
+ *
  * Created by lsharshar on 3/6/2018.
  */
+@Document(indexName = "pricedata", type="_doc")
 public class PriceData {
-	public PriceData() {}
-
-	public PriceData(int id, String ticker, Double price) {
-		this.id = id;
-		this.ticker = ticker;
-		this.price = price;
-	}
-
-	private Integer id;
-
+	@Id
+	private Long _id;
 	private String ticker;
-
 	private Double price;
-
 	private Date updateTime;
+	private short exchange;
 
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
+	public PriceData() {
+		long unsignedValue;
+		try {
+			SecureRandom prng = SecureRandom.getInstance("SHA1PRNG");
+			int val = prng.nextInt();
+			unsignedValue = val;
+			if (val < 0) {
+				unsignedValue = val & 0xffffffffl;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			int val = (int) (Math.random() * Integer.MAX_VALUE);
+			unsignedValue = val;
+			if (val < 0) {
+				unsignedValue = val & 0xffffffffl;
+			}
+		}
+		_id = unsignedValue;
 	}
 
 	public Double getPrice() {
@@ -52,5 +62,13 @@ public class PriceData {
 
 	public void setTicker(String ticker) {
 		this.ticker = ticker;
+	}
+
+	public short getExchange() {
+		return exchange;
+	}
+
+	public void setExchange(short exchange) {
+		this.exchange = exchange;
 	}
 }

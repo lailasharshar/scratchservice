@@ -14,10 +14,10 @@ public class PriceDataResultSetExtractor implements ResultSetExtractor <PriceDat
 	@Override
 	public PriceData extractData(ResultSet rs) throws SQLException {
 		PriceData priceData = new PriceData();
-		priceData.setId(rs.getInt("id"));
 		priceData.setPrice(rs.getDouble("price"));
 		priceData.setTicker(rs.getString("ticker"));
 		priceData.setUpdateTime(rs.getTimestamp("update_time"));
+		priceData.setExchange(rs.getShort("exchange"));
 		return priceData;
 	}
 }

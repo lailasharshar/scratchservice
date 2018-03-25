@@ -1,6 +1,9 @@
 package com.sharshar.taskservice.services;
 
 import com.sendgrid.*;
+import com.sharshar.taskservice.utils.ScratchException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -8,10 +11,13 @@ import java.io.IOException;
 
 
 /**
+ * Used to send an email using SendGrid - Currently, only one person can be notified
+ *
  * Created by lsharshar on 3/18/2018.
  */
 @Service
 public class NotificationService {
+	private static Logger logger = LogManager.getLogger();
 
 	@Value( "${sendgrid.api_key}" )
 	private String apiKey;
@@ -22,7 +28,7 @@ public class NotificationService {
 	@Value( "${notification.sendTo}" )
 	private String sendTo;
 
-	public void notifyMe(String subject, String contentString) throws Exception {
+	public void notifyMe(String subject, String contentString) throws ScratchException {
 		Email from = new Email(sendFrom);
 		Email to = new Email(sendTo);
 		Content content = new Content("text/plain", contentString);
@@ -35,11 +41,11 @@ public class NotificationService {
 			request.setEndpoint("mail/send");
 			request.setBody(mail.build());
 			Response response = sg.api(request);
-			System.out.println(response.getStatusCode());
-			System.out.println(response.getBody());
-			System.out.println(response.getHeaders());
+			logger.info(response.getStatusCode());
+			logger.info(response.getBody());
+			logger.info(response.getHeaders());
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			throw new ScratchException("Error sending notification to me", ex);
 		}
 
 	}

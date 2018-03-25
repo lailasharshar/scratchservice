@@ -1,4 +1,4 @@
-package com.sharshar.taskservice.controllers.utils;
+package com.sharshar.taskservice.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
