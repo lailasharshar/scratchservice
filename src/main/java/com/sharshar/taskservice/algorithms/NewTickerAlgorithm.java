@@ -1,7 +1,5 @@
 package com.sharshar.taskservice.algorithms;
 
-import com.sharshar.taskservice.beans.PriceData;
-import com.sharshar.taskservice.beans.RepositoryDescriptor;
 import com.sharshar.taskservice.services.GlobalRepositories;
 import com.sharshar.taskservice.services.NotificationService;
 import com.sharshar.taskservice.utils.ScratchConstants;
@@ -32,8 +30,15 @@ public class NewTickerAlgorithm {
 	@Autowired
 	private GlobalRepositories globalRepositories;
 
+	@Autowired
+	NotificationSchedulingManager notificationSchedulingManager;
+
 	@Value( "${url}" )
 	private String url;
+
+	@Value( "${cacheSize}" )
+	private int cacheSize;
+
 
 	private List<String> newTickers;
 
@@ -54,67 +59,25 @@ public class NewTickerAlgorithm {
 		// If we are not stale, check to see if there is anything new
 		// Right now, just notify me that there is a new one
 		for (String newTicker : newTickers) {
-			List<PriceData> allPrices = getPrices(newTicker);
 			logger.info("New ticker for " + ScratchConstants.EXCHANGES[exchange] + ": " + newTicker);
-			notifyMe(allPrices, newTicker);
+			notifyMe(exchange, newTicker);
 		}
 	}
 
-	private String getNotificationString(List<PriceData> allPrices, String ticker) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Price data for : ").append(ticker);
-		StringBuilder otherPriceData = new StringBuilder();
-		String format = "%2.10f";
-		for (PriceData pd : allPrices) {
-			if (pd.getExchange() == exchange) {
-				sb.append("Listed newly on: ")
-						.append(ScratchConstants.EXCHANGES[exchange])
-						.append(" at ")
-						.append(String.format(format, pd.getPrice()))
-						.append(" - ")
-						.append(url)
-						.append("/data/history/")
-						.append(ticker)
-						.append("/")
-						.append(exchange)
-						.append("/firstText\n")
-						.append("\n\n");
-			} else {
-				otherPriceData.append(ScratchConstants.EXCHANGES[pd.getExchange()])
-						.append(": ")
-						.append(String.format(format, pd.getPrice()))
-						.append(" - ")
-						.append(url)
-						.append("/data/history/")
-						.append(ticker)
-						.append("/")
-						.append(exchange)
-						.append("/firstText\n")
-						.append("\n");
-			}
-		}
-		sb.append(otherPriceData);
-		return sb.toString();
+	public Date getDateForAlert() {
+		int interval = ScratchConstants.PULL_INTERVAL;
+		// We'll get to the point where the cache is full for the new items
+
+		int timeToExpire = interval * cacheSize;
+		// Back out 3 intervals just in case we have a delay, don't want the new price to fall off
+		timeToExpire = timeToExpire - interval - interval - interval;
+
+		return new Date(new Date().getTime() + timeToExpire);
 	}
 
-	private List<PriceData> getPrices(String ticker)  {
-		List<PriceData> pd = new ArrayList<>();
-		List<RepositoryDescriptor> trackers = globalRepositories.getTrackerList();
-		for (RepositoryDescriptor d : trackers) {
-			PriceData lastPull = Collections.max(d.getCache().getPriceData(ticker),
-					Comparator.comparing(PriceData::getUpdateTime));
-			if (lastPull != null) {
-				pd.add(lastPull);
-			}
-		}
-		return pd;
-	}
-
-	private void notifyMe(List<PriceData> allPrices, String ticker) {
+	private void notifyMe(int newExchange, String ticker) {
 		try {
-			String msg = getNotificationString(allPrices, ticker);
-			notificationService.notifyMe("NEW " + ScratchConstants.EXCHANGES[exchange] + " TICKER: "
-							+ ticker, msg);
+			notificationSchedulingManager.scheduleTask(ticker, newExchange, getDateForAlert());
 		} catch (Exception ex) {
 			logger.error("Unable to notify me", ex);
 		}

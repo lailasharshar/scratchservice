@@ -37,7 +37,7 @@ public class DataPullJob {
 	 * Was having a problem with this when it was in the constructor since the repository was being
 	 * created after this bean
 	 */
-	@Scheduled(fixedRate = 10000)
+	@Scheduled(fixedRate = ScratchConstants.PULL_INTERVAL)
 	public void doTracking() {
 		if (this.repositories.getTrackerList() == null) {
 			return;

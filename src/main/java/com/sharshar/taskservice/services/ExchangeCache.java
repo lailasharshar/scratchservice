@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,11 +26,15 @@ public class ExchangeCache {
 	private List<String> tickers;
 
 	private Map<String, List<PriceData>> priceCache;
-
+	SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss:SSS");
 	public ExchangeCache() {
 		if (cacheSize == 0) {
 			cacheSize = 100;
 		}
+	}
+
+	public void setCacheSize(int size) {
+		cacheSize = size;
 	}
 
 	public void setTickers(List<String> tickers) {
@@ -42,7 +47,7 @@ public class ExchangeCache {
 		}
 	}
 
-	void addPricedata(List<PriceData> priceData) {
+	public void addPriceData(List<PriceData> priceData) {
 		if (priceData == null) {
 			return;
 		}
@@ -55,9 +60,9 @@ public class ExchangeCache {
 		for (PriceData p : priceData) {
 			String ticker = p.getTicker();
 			if (!tickerExists(ticker)) {
+				tickers.add(ticker);
 				List<PriceData> data = new LimitedArrayList<>(cacheSize);
 				data.add(p);
-				tickers.add(ticker);
 				priceCache.put(ticker, data);
 			} else {
 				List<PriceData> data = priceCache.get(ticker);
@@ -73,18 +78,18 @@ public class ExchangeCache {
 		}
 	}
 
-	private String getPriceCache(String ticker) {
+	 public String getPriceCache(String ticker) {
 		if (priceCache == null || priceCache.get(ticker) == null) {
-			return "";
+			return "Ticker: " + ticker + " (0)\n";
 		}
 		List<PriceData> data = priceCache.get(ticker);
 		StringBuilder result = new StringBuilder();
 		result.append("Ticker: ").append(ticker).append(" (").append(data.size()).append(")\n");
-		data.forEach(p -> result.append("    Date: ").append(p.getUpdateTime()).append(" Price: ").append(p.getPrice()).append("\n"));
+		data.forEach(p -> result.append("    Date: ").append(sdf.format(p.getUpdateTime())).append(" Price: ").append(p.getPrice()).append("\n"));
 		return result.toString();
 	}
 
-	Date getLatestUpdate() {
+	public Date getLatestUpdate() {
 		Date longTimeAgo = new Date(0);
 		if (priceCache == null || priceCache.size() == 0) {
 			return longTimeAgo;
@@ -115,7 +120,7 @@ public class ExchangeCache {
 	 *
 	 * @param ticker - the ticker to add
 	 */
-	private void addTicker(String ticker) {
+	public void addTicker(String ticker) {
 		// Use this way to access it so it creates it if it doesn't already exist
 		List<String> tList = getTickers();
 		if (tList != null && !tList.contains(ticker)) {
@@ -123,7 +128,7 @@ public class ExchangeCache {
 		}
 	}
 
-	void addAllTickers(List<String> tickers) {
+	public void addAllTickers(List<String> tickers) {
 		// Loads them if they are not there
 		if (tickers != null) {
 			for (String t : tickers) {
@@ -144,11 +149,11 @@ public class ExchangeCache {
 		return tickers;
 	}
 
-	private boolean tickerExists(String ticker) {
+	public boolean tickerExists(String ticker) {
 		return ticker != null && getTickers().contains(ticker);
 	}
 
-	void clear() {
+	public void clear() {
 		if (tickers != null) {
 			tickers.clear();
 		}

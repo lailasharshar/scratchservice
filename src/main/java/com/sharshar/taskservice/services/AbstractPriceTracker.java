@@ -105,7 +105,7 @@ public abstract class AbstractPriceTracker implements PriceTracker {
 		if (samples == null) {
 			return;
 		}
-		cache.addPricedata(samples);
+		cache.addPriceData(samples);
 	}
 
 	/**
