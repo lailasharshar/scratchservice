@@ -25,6 +25,10 @@ public class PriceDataES {
 		return priceDataRepository.save(priceData);
 	}
 
+	public Iterable<PriceData> save(List<PriceData> priceData) {
+		return priceDataRepository.saveAll(priceData);
+	}
+
 	public void delete(PriceData priceData) {
 		priceDataRepository.delete(priceData);
 	}

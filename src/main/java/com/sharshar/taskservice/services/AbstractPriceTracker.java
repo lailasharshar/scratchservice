@@ -113,8 +113,7 @@ public abstract class AbstractPriceTracker implements PriceTracker {
 			return;
 		}
 		cache.addPricedata(samples);
-		samples.stream().forEach(pd -> priceDataES.save(pd));
-		//asynchronousDbService.saveData(samples);
+		priceDataES.save(samples);
 	}
 
 	/**

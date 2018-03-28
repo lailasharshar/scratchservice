@@ -73,7 +73,11 @@ public class DataPullJob {
 			}
 		}
 		try {
+			int val = ((int)Math.random() * 1000);
+			long startTime = System.currentTimeMillis();
 			descriptor.getTracker().processUpdate(descriptor.getCache());
+			long endTime = System.currentTimeMillis();
+			logger.info(" Seconds to process: " + (endTime - startTime) + " seconds");
 		} catch (Exception ex) {
 			// We are having a problem skip tasks for a while
 			logger.error("Problem updating data, skip " + descriptor.getNumberToSkip(), ex);
