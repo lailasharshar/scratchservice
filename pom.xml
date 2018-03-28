@@ -9,7 +9,6 @@
 	<packaging>jar</packaging>
 
 	<name>taskservice</name>
-	<description>Demo project for Spring Boot</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -26,24 +25,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.google.cloud.sql</groupId>
-			<!-- If using MySQL 6.x driver, use mysql-socket-factory-connector-j-6 instead -->
-			<artifactId>mysql-socket-factory</artifactId>
-			<version>1.0.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jdbc</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.sendgrid</groupId>
@@ -59,15 +42,6 @@
 			<groupId>com.binance.api</groupId>
 			<artifactId>binance-api-client</artifactId>
 			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-commons</artifactId>
-			<version>2.0.3.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>

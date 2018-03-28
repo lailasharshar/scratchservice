@@ -1,8 +1,5 @@
 package com.sharshar.taskservice.beans;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-
 import java.security.SecureRandom;
 import java.util.Date;
 
@@ -11,9 +8,7 @@ import java.util.Date;
  *
  * Created by lsharshar on 3/6/2018.
  */
-@Document(indexName = "pricedata", type="_doc")
 public class PriceData {
-	@Id
 	private Long _id;
 	private String ticker;
 	private Double price;
