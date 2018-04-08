@@ -1,8 +1,10 @@
 package com.sharshar.taskservice.controllers;
 
+import com.sharshar.taskservice.algorithms.SignalSearcher;
 import com.sharshar.taskservice.beans.PriceData;
 import com.sharshar.taskservice.repository.PriceDataES;
 import com.sharshar.taskservice.utils.GenUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +25,10 @@ import java.util.stream.Collectors;
  */
 @RestController
 public class DataAnalysis {
+
+	@Autowired
+	SignalSearcher signalSearcher;
+
 	public class PriceDataLight {
 		private String ticker;
 		private double price;
@@ -80,7 +87,7 @@ public class DataAnalysis {
 
 	@GetMapping("/data/history/{ticker}/{exchange}")
 	public List<PriceDataLight> getPriceData(@PathVariable String ticker, @RequestParam String startDate,
-										@RequestParam String endDate, @PathVariable short exchange) {
+										@RequestParam String endDate, @PathVariable short exchange) throws Exception {
 		Date startDateVal = GenUtils.parseDate(startDate, sdf);
 		Date endDateVal = GenUtils.parseDate(endDate, sdf);
 		if (startDateVal == null || endDateVal == null) {
@@ -88,6 +95,7 @@ public class DataAnalysis {
 		}
 		List<PriceData> data = priceDataEs.findByTimeRange(ticker, startDateVal, endDateVal, exchange);
 		if (data != null) {
+			data.stream().sorted(Comparator.comparing(PriceData::getUpdateTime)).collect(Collectors.toList());
 			return data.stream().map(d -> new PriceDataLight(d.getTicker(), d.getPrice(), d.getUpdateTime()))
 					.collect(Collectors.toList());
 		}

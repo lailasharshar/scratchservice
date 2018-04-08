@@ -1,6 +1,8 @@
 package com.sharshar.taskservice.repository;
 
 import com.sharshar.taskservice.beans.PriceData;
+import com.sharshar.taskservice.configuration.EsConfig;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static javax.xml.crypto.dsig.DigestMethod.SHA256;
-
 /**
  * Created by lsharshar on 3/24/2018.
  */
@@ -20,6 +20,9 @@ public class PriceDataES {
 
 	@Autowired
 	private PriceDataRepository priceDataRepository;
+
+	@Autowired
+	private EsConfig esConfig;
 
 	public PriceData save(PriceData priceData) {
 		return priceDataRepository.save(priceData);
@@ -43,13 +46,11 @@ public class PriceDataES {
 		return data.getContent();
 	}
 
-	public List<PriceData> findByTimeRange(String ticker, Date startDate, Date endDate, int exchange) {
-		Page<PriceData> data = priceDataRepository
-				.findByTickerAndExchangeAndUpdateTimeBetweenOrderByUpdateTime(
-						ticker, exchange, startDate, endDate, PageRequest.of(0, 10000));
-		if (data == null) {
-			return new ArrayList<>();
-		}
+	public List<PriceData> findByTimeRange(String ticker, Date startDate, Date endDate, int exchange) throws Exception{
+		DateTime dt1 = new DateTime(startDate);
+		DateTime dt2 = new DateTime(endDate);
+		Page<PriceData> data = priceDataRepository.findByUpdateTimeBetweenAndExchangeAndTicker(
+				dt1, dt2, exchange, ticker, PageRequest.of(0, 10000));
 		return data.getContent();
 	}
 }

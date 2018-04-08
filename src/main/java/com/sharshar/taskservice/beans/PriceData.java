@@ -2,6 +2,8 @@ package com.sharshar.taskservice.beans;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.security.SecureRandom;
 import java.util.Date;
@@ -15,9 +17,16 @@ import java.util.Date;
 public class PriceData {
 	@Id
 	private Long _id;
+
 	private String ticker;
+
+	@Field(type = FieldType.Float)
 	private Double price;
+
+	//@Field(type = FieldType.Date, format = DateFormat.custom, pattern = "EEE MMM dd HH:mm:ss zzz yyyy")
 	private Date updateTime;
+
+	@Field(type = FieldType.Long)
 	private short exchange;
 
 	public PriceData() {
