@@ -9,7 +9,11 @@ public class ScratchConstants {
 	private ScratchConstants() {  /* No need to instantiate this */}
 
 	public static final short BINANCE = 1;
-	public static final String[] EXCHANGES = {"", "Binance"};
+	public static final short CRYPTO_COMPARE = 2;
+	public static final short ELASTIC_SEARCH = 1;
+	public static final short SQL_SEARCH = 2;
+	public static final String[] EXCHANGES = {"", "Binance", "Crypto Compare"};
+	public static final int[] EXCHANGES_SEARCHES = {0, ELASTIC_SEARCH, SQL_SEARCH};
 
 	// The maximum amount of time this api can be down
 	// before the data is stale is 30 second
